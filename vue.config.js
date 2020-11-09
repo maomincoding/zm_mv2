@@ -46,7 +46,8 @@ module.exports = {
               warnings: true,
               errors: true
             },
-            host: "192.168.2.196",
+            // host: "192.168.2.196",
+            host:"localhost",
             port: 8080, // 端口号
             https: false, // https:{type:Boolean}
             open: false, //配置自动启动浏览器
