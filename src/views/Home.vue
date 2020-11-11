@@ -7,13 +7,11 @@
       :show-indicators="false"
     >
       <van-swipe-item>
-        <div class="main">
+        <div class="main" v-if="isshow">
           <video
             loop
-            v-if="isshow"
             ref="video1"
             :src="src"
-            :poster="poster"
             webkit-playsinline="true"
             x5-playsinline=""
             x5-video-player-type="h5"
@@ -36,13 +34,11 @@
         </div>
       </van-swipe-item>
       <van-swipe-item>
-        <div class="main">
+        <div class="main" v-if="!isshow">
           <video
             loop
-            v-if="!isshow"
             ref="video1"
             :src="src"
-            :poster="poster"
             webkit-playsinline="true"
             x5-playsinline=""
             x5-video-player-type="h5"
@@ -94,7 +90,6 @@ export default {
       src: "",
       id: "",
       show: false,
-      poster: "",
       dataLength: 1,
       artistName: "",
       name: "",
@@ -124,11 +119,7 @@ export default {
     },
     get() {
       return list(this.dataLength).then((res) => {
-        console.log(res.data);
-        // success
-        // let randomNum = Math.floor(Math.random()*res.data.length);
         this.id = res.data[this.dataLength - 1].id;
-        this.poster = res.data[this.dataLength - 1].cover;
         this.artistName = res.data[this.dataLength - 1].artistName;
         this.name = res.data[this.dataLength - 1].name;
         return this.id;
@@ -141,15 +132,15 @@ export default {
     },
     getpl() {
       pl(this.id, this.page).then((res) => {
-        // success
-        console.log(res);
+        if(document.querySelector(".van-action-sheet__content")){
+          document.querySelector(".van-action-sheet__content").scrollTop = 0;
+        }
         this.plist = res.comments;
       });
     },
     onChange() {
       this.isshow = !this.isshow;
       this.dataLength += 1;
-      console.log(this.dataLength);
       this.page = 10;
       this.wait();
       this.getpl();
@@ -157,7 +148,7 @@ export default {
     openPl() {
       this.show = true;
       this.getpl();
-    },
+    }
   },
 };
 </script>
@@ -174,7 +165,8 @@ export default {
   justify-content: space-between;
   align-items: center;
 }
-.user,.name{
+.user,
+.name {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
