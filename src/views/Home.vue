@@ -75,16 +75,15 @@ export default {
   data() {
     return {
       list: "",
-      src: "",
       id: "",
       show: false,
       dataLength: 1,
+      inx: 0,
       artistName: "",
       name: "",
       isshow: true,
       plist: "",
       loading: false,
-      finished: false,
       page: 10,
       playerOptions: {
         autoplay: true, //如果true,浏览器准备好时开始回放。
@@ -101,6 +100,7 @@ export default {
           timeDivider: true, // 分时
           durationDisplay: true, // 持续时间显示
           remainingTimeDisplay: false, // 剩余时间显示
+          fullscreenToggle: false, //全屏按钮
         },
       },
     };
@@ -108,37 +108,48 @@ export default {
   components: {
     videoPlayer,
   },
-  created() {
+  mounted() {
     this.wait();
   },
   methods: {
+    // 首次获取url
     async wait() {
       let id = await this.get();
       let res = await mv(id);
-      // this.src = res.data.url;
       this.$set(this.playerOptions.sources[0], "src", res.data.url);
     },
+    // 加载评论
     onLoad() {
-      // 异步更新数据
       setTimeout(() => {
         this.page += 10;
         this.getpl();
         this.loading = false;
       }, 500);
     },
+    // 获取数据
     get() {
       return list(this.dataLength).then((res) => {
-        this.id = res.data[this.dataLength - 1].id;
-        this.artistName = res.data[this.dataLength - 1].artistName;
-        this.name = res.data[this.dataLength - 1].name;
-        return this.id;
-        // return Promise.resolve(this.id);
+        console.log(res.data);
+        this.urlData = res.data;
+        this.id = this.urlData[this.inx].id;
+        this.artistName = this.urlData[this.inx].artistName;
+        this.name = this.urlData[this.inx].name;
+        // return this.id;
+        return Promise.resolve(this.id);
         // 等价于
         // return new Promise((resolve) => {
         //   resolve(this.id)
         // })
       });
     },
+    // 封装静态数据
+    getStatic(v) {
+      this.id = v[this.inx].id;
+      this.artistName = v[this.inx].artistName;
+      this.name = v[this.inx].name;
+      return this.id;
+    },
+    // 获取评论
     getpl() {
       pl(this.id, this.page).then((res) => {
         if (document.querySelector(".van-action-sheet__content")) {
@@ -147,13 +158,24 @@ export default {
         this.plist = res.comments;
       });
     },
-    onChange() {
+    // 滑动触发
+    async onChange() {
+      console.log(this.inx);
       this.isshow = !this.isshow;
-      this.dataLength += 1;
       this.page = 10;
-      this.wait();
       this.getpl();
+      if (this.inx < this.urlData.length - 1) {
+        this.inx += 1;
+        let id = this.getStatic(this.urlData);
+        let res = await mv(id);
+        this.$set(this.playerOptions.sources[0], "src", res.data.url);
+      } else {
+        this.inx = 0;
+        this.dataLength += 1;
+        this.wait();
+      }
     },
+    // 打开评论列表
     openPl() {
       this.show = true;
       this.getpl();
@@ -173,6 +195,9 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.user {
+  font-size: 14px;
 }
 .user,
 .name {
