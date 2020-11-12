@@ -8,20 +8,13 @@
     >
       <van-swipe-item>
         <div class="main" v-if="isshow">
-          <video
-            loop
-            ref="video1"
-            :src="src"
-            webkit-playsinline="true"
-            x5-playsinline=""
-            x5-video-player-type="h5"
-            x5-video-player-fullscreen="true"
-            playsinline="true"
-            preload="auto"
-            autoplay
-            x-webkit-airplay="allow"
-            x5-video-orientation="portrait"
-          ></video>
+          <video-player
+            v-if="playerOptions.sources[0].src"
+            class="video-player vjs-custom-skin"
+            ref="videoPlayer"
+            :playsinline="true"
+            :options="playerOptions"
+          ></video-player>
           <div class="footbox">
             <div class="foot">
               <p class="user">@ {{ artistName }}</p>
@@ -35,20 +28,13 @@
       </van-swipe-item>
       <van-swipe-item>
         <div class="main" v-if="!isshow">
-          <video
-            loop
-            ref="video1"
-            :src="src"
-            webkit-playsinline="true"
-            x5-playsinline=""
-            x5-video-player-type="h5"
-            x5-video-player-fullscreen="true"
-            playsinline="true"
-            preload="auto"
-            autoplay
-            x-webkit-airplay="allow"
-            x5-video-orientation="portrait"
-          ></video>
+          <video-player
+            v-if="playerOptions.sources[0].src"
+            class="video-player vjs-custom-skin"
+            ref="videoPlayer"
+            :playsinline="true"
+            :options="playerOptions"
+          ></video-player>
           <div class="footbox">
             <div class="foot">
               <p class="user">@ {{ artistName }}</p>
@@ -82,6 +68,8 @@
 
 <script>
 import { list, mv, pl } from "@request/api";
+import "../video/index";
+import { videoPlayer } from "vue-video-player";
 export default {
   name: "home",
   data() {
@@ -98,7 +86,27 @@ export default {
       loading: false,
       finished: false,
       page: 10,
+      playerOptions: {
+        autoplay: true, //如果true,浏览器准备好时开始回放。
+        muted: false, // 默认情况下将会消除任何音频。
+        loop: false, // 导致视频一结束就重新开始。
+        preload: "auto", // 建议浏览器在<video>加载元素后是否应该开始下载视频数据。auto浏览器选择最佳行为,立即开始加载视频（如果浏览器支持）
+        language: "zh-CN",
+        aspectRatio: "16:9", // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
+        fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
+        sources: [{ type: "video/mp4", src: "" }],
+        width: document.documentElement.clientWidth,
+        notSupportedMessage: "此视频暂无法播放，请稍后再试", //允许覆盖Video.js无法播放媒体源时显示的默认信息。
+        controlBar: {
+          timeDivider: true, // 分时
+          durationDisplay: true, // 持续时间显示
+          remainingTimeDisplay: false, // 剩余时间显示
+        },
+      },
     };
+  },
+  components: {
+    videoPlayer,
   },
   created() {
     this.wait();
@@ -107,7 +115,8 @@ export default {
     async wait() {
       let id = await this.get();
       let res = await mv(id);
-      this.src = res.data.url;
+      // this.src = res.data.url;
+      this.$set(this.playerOptions.sources[0], "src", res.data.url);
     },
     onLoad() {
       // 异步更新数据
@@ -132,7 +141,7 @@ export default {
     },
     getpl() {
       pl(this.id, this.page).then((res) => {
-        if(document.querySelector(".van-action-sheet__content")){
+        if (document.querySelector(".van-action-sheet__content")) {
           document.querySelector(".van-action-sheet__content").scrollTop = 0;
         }
         this.plist = res.comments;
@@ -148,7 +157,7 @@ export default {
     openPl() {
       this.show = true;
       this.getpl();
-    }
+    },
   },
 };
 </script>
@@ -172,15 +181,10 @@ export default {
   white-space: nowrap;
 }
 .foot {
-  width: 88%;
+  width: 80%;
   color: #fff;
   font-size: 16px;
   z-index: 10001;
-}
-video {
-  width: 100%;
-  height: 82%;
-  object-fit: contain;
 }
 .pl {
   width: 10%;
