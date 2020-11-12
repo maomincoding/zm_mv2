@@ -91,6 +91,7 @@ export default {
         loop: false, // 导致视频一结束就重新开始。
         preload: "auto", // 建议浏览器在<video>加载元素后是否应该开始下载视频数据。auto浏览器选择最佳行为,立即开始加载视频（如果浏览器支持）
         language: "zh-CN",
+        poster:"",
         aspectRatio: "16:9", // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
         fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
         sources: [{ type: "video/mp4", src: "" }],
@@ -116,6 +117,8 @@ export default {
     async wait() {
       let id = await this.get();
       let res = await mv(id);
+      // this.playerOptions.poster = this.poster;
+      this.$set(this.playerOptions, "poster", this.poster);
       this.$set(this.playerOptions.sources[0], "src", res.data.url);
     },
     // 加载评论
@@ -131,6 +134,7 @@ export default {
       return list(this.dataLength).then((res) => {
         console.log(res.data);
         this.urlData = res.data;
+        this.poster = this.urlData[this.inx].cover;
         this.id = this.urlData[this.inx].id;
         this.artistName = this.urlData[this.inx].artistName;
         this.name = this.urlData[this.inx].name;
@@ -147,6 +151,7 @@ export default {
       this.id = v[this.inx].id;
       this.artistName = v[this.inx].artistName;
       this.name = v[this.inx].name;
+      this.poster = v[this.inx].cover;
       return this.id;
     },
     // 获取评论
@@ -169,6 +174,8 @@ export default {
         let id = this.getStatic(this.urlData);
         let res = await mv(id);
         this.$set(this.playerOptions.sources[0], "src", res.data.url);
+        this.$set(this.playerOptions, "poster", this.poster);
+        // this.playerOptions.poster = this.poster;
       } else {
         this.inx = 0;
         this.dataLength += 1;
